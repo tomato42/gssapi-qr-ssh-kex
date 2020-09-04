@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!ENTITY RFC1321 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1321.xml">
+<!ENTITY RFC2045 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2045.xml">
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC4462 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4462.xml">
+<!ENTITY RFC5656 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5656.xml">
+<!ENTITY RFC6194 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6194.xml">
+<!ENTITY RFC6234 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6234.xml">
+<!ENTITY RFC7546 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7546.xml">
+<!ENTITY RFC7748 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7748.xml">
+<!ENTITY RFC8174 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8174.xml">
+<!ENTITY RFC8268 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8268.xml">
+<!ENTITY SSHCURVES PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-ietf-curdle-ssh-curves-08.xml'>
+]>
+<?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
+
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc toc="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc rfcedstyle="yes"?>
+<?rfc autobreaks="yes"?>
+<?rfc docmapping="yes"?>
+
+<rfc category="std" docName="draft-kario-gss-kex-qr-01"
+     ipr="trust200902" updates="4462">
+  <front>
+    <title abbrev="GSS Keyex QR">Quantum-Resistant GSS-API Key Exchange for SSH</title>
+
+    <author fullname="Hubert Kario" initials="H." surname="Kario">
+      <organization>Red Hat, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>Purkynova 115</street>
+
+          <city>Brno</city>
+
+          <code>612 00</code>
+
+          <country>Czech Republic</country>
+        </postal>
+
+        <email>hkario@redhat.com</email>
+      </address>
+    </author>
+
+    <date month="Sep" year="2020" />
+
+    <area>Security</area>
+
+    <workgroup>Internet Engineering Task Force</workgroup>
+
+    <abstract>
+      <t>This document specifies additions and amendments to RFC4462.
+          It defines a new key exchange method that uses GSS-API in a way to
+          provide key exchange method that is resistant to attacks by
+          quantum competers.
+          The purpose of this specification is to provide an easy-to-implement
+          upgrade to environments that require resistance against quantum
+          computers before widely accepted post-quantum cryptography
+          algorithms are established.</t>
+    </abstract>
+  </front>
+
+
+  <middle>
+    <section title="Introduction">
+      <t><xref target="RFC4462">SSH GSS-API Methods</xref> allows the use of
+          GSSAPI for authentication and key exchange in SSH. Unfortunately
+          for resistence against quantum computers all of the methods in
+          that RFC as well as all of the new methods introduced in
+          <xref target="RFC8732">SSH GSS-API SHA-2 Methods</xref> derive
+          their security from Finite-Field Diffie-Hellman or Elliptic Curve
+          Diffie-Hellman key exchanges. Both FFDH and ECDH are believed
+          to be vulnerable to attacks using quantum computers.
+          This document updates RFC4462 with new methods intended for use
+          in environments where use of quantum resistant algorithms
+          is more important that the forward secrecy provided by FFDH and ECDH.
+          </t>
+    </section>
+
+    <section title="Rationale">
+      <t>Due to security concerns with FFDH and ECDH against attacks using
+          quantum computers, we propose a new key exchange method that does
+          not use FFDH or ECDH to agree on a shared secret to derive later
+          encryption keys but rather uses GSS-API as a secure communication
+          channel to exchange secrets that are then used to derive
+          encryption keys</t>.
+      <t>To provide resistence against quantum computer attacks the connection
+          needs to also carefully select encryption ciphers, and host
+          authentication methods.</t>
+    </section>
+
+    <section title="Document Conventions">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+      NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+      "MAY", and "OPTIONAL" in this document are to be interpreted as
+      described in BCP 14 <xref target="RFC2119">RFC2119</xref>
+      <xref target="RFC8174">RFC8174</xref> when, and only when, they
+      appear in all capitals, as shown here.</t>
+    </section>
+
+    <section title="New Quantum Resistant Key Exchange methods">
+      <t>This document adopts the same naming convention defined in <xref
+        target="RFC4462"/> to define families of methods that cover any
+        GSS-API mechanism used with a specific SHA-2 Hash.
+      </t>
+      <texttable>
+        <preamble>The following new key exchange algorithms are defined:
+        </preamble>
+          <ttcol align="left">Key Exchange Method Name</ttcol>
+          <ttcol align="left">Implementation Recommendations</ttcol>
+          <c>gss-qr-sha256-*</c><c>SHOULD/RECOMMENDED</c>
+          <c>gss-qr-sha512-*</c><c>MAY/OPTIONAL</c>
+      </texttable>
+      <t>Each key exchange method is implicitly registered by this document.
+        The IESG is considered to be the owner of all these key exchange
+        methods; this does NOT imply that the IESG is considered to be the
+        owner of the underlying GSS-API mechanism.
+      </t>
+      <t>
+        Each method in any family of methods specifies GSS-API-authenticated
+        exchanges as described in Section 2.1 of <xref
+        target="RFC4462"/>. The method name for each method is the
+        concatenation of the family name prefix with the Base64 encoding of
+        the MD5 hash <xref target="RFC1321"/> of the ASN.1 DER encoding
+        <xref target="ISO-IEC-8825-1"/> of the underlying GSS-API
+        mechanism's OID. Base64 encoding is described in Section 6.8 of
+        <xref target="RFC2045"/>.</t>
+      <texttable>
+        <preamble>Family method references</preamble>
+          <ttcol align="left">Family Name prefix</ttcol>
+          <ttcol align="left">Hash Function</ttcol>
+          <c>gss-qr-sha256-</c><c>SHA-256</c>
+          <c>gss-qr-sha512-</c><c>SHA-512</c>
+      </texttable>
+    </section>
+
+    <section title="IANA Considerations">
+      <t>This document augments the SSH Key Exchange Method Names in <xref
+      target="RFC4462"/>.</t>
+      <texttable>
+        <preamble>IANA is requested to update the <xref
+        target="IANA-KEX-NAMES">SSH Protocol Parameters</xref> registry
+        with the following entries:</preamble>
+          <ttcol align="left">Key Exchange Method Name</ttcol>
+          <ttcol align="left">Reference</ttcol>
+          <c>gss-qr-sha256-*</c><c>This draft</c>
+          <c>gss-qr-sha512-*</c><c>This draft</c>
+      </texttable>
+    </section>
+
+    <section title="Security Considerations">
+      <section title="Symmetric cipher security">
+        <t>Current understanding of quantum computer capabilities suggest
+            that symmetric ciphers with keys smaller than 256 bits will
+            require less than the current recommended minimal work factor
+            of 2^128 operations. As such, connections that use this
+            key exchange methods MUST use ciphers with at least
+            256 bit keys to provide quantum resistence.
+        </t>
+      </section>
+      <section title="GSSAPI Delegation">
+        <t>Some GSSAPI mechanisms can act on a request to delegate credentials
+        to the target host when the deleg_req_flag is set. In this case, extra
+        care must be taken to ensure that the acceptor being authenticated
+        matches the target the user intended. Some mechanisms implementations
+        (like commonly used krb5 libraries) may use insecure DNS resolution to
+        canonicalize the target name; in these cases spoofing a DNS response
+        that points to an attacker-controlled machine may results in the user
+        silently delegating credentials to the attacker, who can then
+        impersonate the user at will.</t>
+      </section>
+    </section>
+
+  </middle>
+
+  <back>
+<?rfc rfcedstyle="no"?>
+    <references title="Normative References">
+
+      &RFC1321;
+      &RFC2045;
+
+      <!--SSH GSS-API Methods-->
+
+      &RFC4462;
+
+      &RFC7546;
+
+      &SSHCURVES;
+
+      <!--Key words for use in RFCs to Indicate Requirement Levels-->
+
+      &RFC2119;
+
+      &RFC8174;
+
+    </references>
+
+    <references title="Informative References">
+
+      &RFC6194;
+
+      &RFC8268;
+
+      <!--SHA-2-->
+
+      &RFC6234;
+
+      <reference
+          anchor="ISO-IEC-8825-1"
+          target="http://standards.iso.org/ittf/PubliclyAvailableStandards/c068345_ISO_IEC_8825-1_2015.zip">
+        <front>
+          <title>ASN.1 encoding rules: Specification of Basic Encoding Rules
+          (BER), Canonical Encoding Rules (CER) and Distinguished Encoding
+          Rules (DER)</title>
+          <author>
+            <organization>International Organization for Standardization /
+            International Electrotechnical Commission</organization>
+          </author>
+          <date day="15" month="November" year="2015"/>
+        </front>
+        <seriesInfo name="ISO/IEC" value="8825-1"/>
+      </reference>
+
+      <reference
+          anchor="NIST-SP-800-131Ar1"
+          target="http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">
+        <front>
+          <title>Transitions: Recommendation for Transitioning of
+          the Use of Cryptographic Algorithms and Key Lengths</title>
+          <author>
+            <organization
+                abbrev="NIST">National Institute of Standards and Technology
+            </organization>
+          </author>
+          <date month="November" year="2015"/>
+        </front>
+        <seriesInfo
+            name="NIST Special Publication"
+            value="800-131A Revision 1"/>
+       </reference>
+
+      <reference
+          anchor="IANA-KEX-NAMES"
+          target="https://www.iana.org/assignments/ssh-parameters/ssh-parameters.xhtml#ssh-parameters-16">
+        <front>
+          <title> Secure Shell (SSH) Protocol Parameters: Key Exchange Method Names</title>
+          <author>
+            <organization
+                abbrev="IANA">Internet Assigned Numbers Authority
+            </organization>
+          </author>
+          <date day="2" month="June" year="2005"/>
+        </front>
+      </reference>
+    </references>
+
+  </back>
+</rfc>
