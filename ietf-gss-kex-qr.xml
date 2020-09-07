@@ -99,7 +99,7 @@
       appear in all capitals, as shown here.</t>
     </section>
 
-    <section title="New Quantum Resistant Key Exchange methods">
+    <section title="New Quantum Resistant Key Exchange Methods">
       <t>This document adopts the same naming convention defined in <xref
         target="RFC4462"/> to define families of methods that cover any
         GSS-API mechanism used with a specific SHA-2 Hash.
@@ -156,7 +156,7 @@
             require less than the current recommended minimal work factor
             of 2^128 operations. As such, connections that use this
             key exchange methods MUST use ciphers with at least
-            256 bit keys to provide quantum resistence.
+            256 bit keys to retain quantum resistence.
         </t>
       </section>
       <section title="GSSAPI Delegation">
