@@ -159,6 +159,9 @@
             256 bit keys to retain quantum resistence.
         </t>
       </section>
+      <section title="User authentication">
+        <t>TODO:  explain that user auth can't use asymmetric crypto, thus
+        only gssapi-keyex, password or keyboard-interactive should be used</t>
       <section title="GSSAPI Delegation">
         <t>Some GSSAPI mechanisms can act on a request to delegate credentials
         to the target host when the deleg_req_flag is set. In this case, extra
