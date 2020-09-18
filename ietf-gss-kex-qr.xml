@@ -53,7 +53,7 @@
       <t>This document specifies additions and amendments to RFC4462.
           It defines a new key exchange method that uses GSS-API in a way to
           provide key exchange method that is resistant to attacks by
-          quantum competers.
+          quantum computers.
           The purpose of this specification is to provide an easy-to-implement
           upgrade to environments that require resistance against quantum
           computers before widely accepted post-quantum cryptography
@@ -66,12 +66,12 @@
     <section title="Introduction">
       <t><xref target="RFC4462">SSH GSS-API Methods</xref> allows the use of
           GSSAPI for authentication and key exchange in SSH. Unfortunately
-          for resistence against quantum computers all of the methods in
-          that RFC as well as all of the new methods introduced in
+          for resistance against quantum computers all of the methods in
+          RFC 4462 as well as all of the new methods introduced in
           <xref target="RFC8732">SSH GSS-API SHA-2 Methods</xref> derive
           their security from Finite-Field Diffie-Hellman or Elliptic Curve
           Diffie-Hellman key exchanges. Both FFDH and ECDH are believed
-          to be vulnerable to attacks using quantum computers.
+          to be vulnerable to Shor's algorithm running on quantum computers.
           This document updates RFC4462 with new methods intended for use
           in environments where use of quantum resistant algorithms
           is more important that the forward secrecy provided by FFDH and ECDH.
@@ -85,7 +85,7 @@
           encryption keys but rather uses GSS-API as a secure communication
           channel to exchange secrets that are then used to derive
           encryption keys</t>.
-      <t>To provide resistence against quantum computer attacks the connection
+      <t>To provide resistance against quantum computer attacks the connection
           needs to also carefully select encryption ciphers, and host
           authentication methods.</t>
     </section>
@@ -100,7 +100,7 @@
     </section>
 
     <section title="New Quantum Resistant Key Exchange Methods">
-      <t>This document adopts the same naming convention defined in <xref
+      <t>This document adopts the same naming convention as defined in <xref
         target="RFC4462"/> to define families of methods that cover any
         GSS-API mechanism used with a specific SHA-2 Hash.
       </t>
@@ -156,7 +156,7 @@
             require less than the current recommended minimal work factor
             of 2^128 operations. As such, connections that use this
             key exchange methods MUST use ciphers with at least
-            256 bit keys to retain quantum resistence.
+            256 bit keys to retain quantum resistance.
         </t>
       </section>
       <section title="User authentication">
