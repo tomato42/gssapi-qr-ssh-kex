@@ -146,8 +146,9 @@
             described in <xref target="RFC7546"/> apply here too.
         </t>
         <t>The parties generate in the key exchange generate nonces.
-            The generated nonces MUST include 256 bits of entropy from a
-            CSPRNG. The nonces MUST NOT be reused in other key exchanges.
+            The generated nonces MUST be at lest 256 bits long and come from a
+            quantum safe CSPRNG. The nonces MUST NOT be reused in other key
+            exchanges.
         </t>
         <t>The client initiates negotiation by calling GSS_Init_sec_context()
             and the server responds to it by calling GSS_Accept_sec_context().
