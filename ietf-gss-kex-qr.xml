@@ -355,7 +355,22 @@
       </section>
       <section title="User authentication">
         <t>TODO:  explain that user auth can't use asymmetric crypto, thus
-        only gssapi-keyex, password or keyboard-interactive should be used</t>
+            only gssapi-keyex, password or keyboard-interactive should be used</t>
+      </section>
+      <section title="Used GSSAPI Mechanisms">
+        <t>The security of the key exchange depends on the security of the
+            used GSSAPI mechanism. The described key exchange will be quantum
+            resistant only in case the used GSSAPI mechanism is quantum
+            resistant.
+        </t>
+        <t>For example, the Kerberos 5 mechanism is quantum resistant only when
+            it's used together with algorithms and key sizes that are quantum
+            resistant. Quantum safe algorithm SHOULD be used throught the
+            kerberos infrastructure, both for authentication and encryption.
+            Currently aes256-cts-hmac-sha384-192 mechanism defined
+            in <xref target="RFC8009"/> for encryption is an example
+            of such an algorithm.</t>
+      </section>
       <section title="GSSAPI Delegation">
         <t>Some GSSAPI mechanisms can act on a request to delegate credentials
         to the target host when the deleg_req_flag is set. In this case, extra
