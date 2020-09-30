@@ -102,7 +102,9 @@
     <section title="New Quantum Resistant Key Exchange Methods">
       <t>This document adopts the same naming convention as defined in <xref
         target="RFC4462"/> to define families of methods that cover any
-        GSS-API mechanism used with a specific SHA-2 Hash.
+          GSS-API mechanism used with a specific SHA-2 Hash. It also
+          reuses much of the the scheme defined in Section 2.1 of
+          <xref target="RFC4462"/>.
       </t>
       <texttable>
         <preamble>The following new key exchange algorithms are defined:
@@ -133,6 +135,199 @@
           <c>gss-qr-sha256-</c><c>SHA-256</c>
           <c>gss-qr-sha512-</c><c>SHA-512</c>
       </texttable>
+      <section title="Generic Quantum Resistant GSS-API key Exchange">
+        <t>This section reuses much of the scheme defined in Section 2.1
+            of <xref target="RFC4462"/> though it does not transport FFDH
+            key shares in the exchanged messages.
+        </t>
+        <t>This section defers to <xref target="RFC7546"/> as the source of
+            information on GSS-API context establishment operations,
+            Section 3 being the most relevant. All security considerations
+            described in <xref target="RFC7546"/> apply here too.
+        </t>
+        <t>The parties generate nonces in the key exchange.
+            The generated nonces MUST be at least 256 bits long and come from a
+            quantum safe CSPRNG. The nonces MUST NOT be reused in other key
+            exchanges.
+        </t>
+        <t>The client initiates negotiation by calling GSS_Init_sec_context()
+            and the server responds to it by calling GSS_Accept_sec_context().
+            For the negotiation, client MUST set the mutual_req_flag,
+            conf_req_flag, and integ_req_flag flag to "true". In addition,
+            deleg_req_flag MAY be set to "true" to request access delegation,
+            if requested by the user. Since the key exchange process
+            authenticates only the host, the setting of anon_req_flag is
+            immaterial to this process. If the client does not support the
+            "gssapi-keyex" user authentication method described in Section 4
+            of <xref target="RFC4462"/>, or does not intend to use that method
+            in conjunction with the GSS-API context established during key
+            exchange, then anon_req_flag SHOULD be set to "true". Otherwise,
+            this flag MAY be set to true if the client wishes to hide its
+            identity. This key exchange process will exchange only a single
+            message token once the context has been established; therefore, the
+            replay_det_req_flag and sequence_req_flag SHOULD be set to "false".
+         </t>
+         <t>During GSS context establishment, multiple tokens may be exchanged
+             by the client and the server. When the GSS context is established
+             (major_status is GSS_S_COMPLETE), the parties check that
+             mutual_state and integ_avail are both "true".  If not, the key
+             exchange MUST fail.
+         </t>
+         <t>To verify the integrity of the handshake both peers use the Hash
+             Function defined by the selected Key Exchange method to calculate
+             the running hash of exchanged messages, H_S and H_C.
+         </t>
+
+         <t>H_S = hash(V_C || V_S || I_C || KC_S || ... || KC_C).</t>
+
+         <t>H_C = hash(V_C || V_S || I_C || KC_S || ... || KC_C || KC).</t>
+
+         <t>The GSS_wrap() call is used by the server and client to encrypt
+             the calculated hash and the selected nonce. The peers use
+             the GSS_unwrap() to decrypt the value used to check if the other
+             peer has received the same messages and to get the nonce it
+             selected.
+         </t>
+         <t>Peers MUST verify if the length of the selected nonce is not
+             shorter than 32 octets. If the received nonce is shorter, the
+             key exchange MUST fail.
+         </t>
+
+        <t>The following is an overview of the key exchange process:
+          <figure>
+            <artwork>
+      Client                                                Server
+      ------                                                ------
+      Calls GSS_Init_sec_context().
+      SSH_MSG_KEXGSS_INIT  ---------------&gt;
+
+  (Loop)
+  |                                    Calls GSS_Accept_sec_context().
+  |                           &lt;------------ SSH_MSG_KEXGSS_CONTINUE
+  |   Calls GSS_Init_sec_context().
+  |   SSH_MSG_KEXGSS_CONTINUE ------------&gt;
+
+                                       Calls GSS_Accept_sec_context().
+                                            Generates ephemeral nonce.
+                                                    Computes hash H_S.
+                                     Calls GSS_wrap( H_S || nonce_S ).
+                              &lt;------------ SSH_MSG_KEXGSS_COMPLETE
+
+      Computes hash H_S.
+      Calls GSS_unwrap().
+      Verifies that computed H_S matches received value.
+      Computes hash H_C.
+      Generates ephemeral nonce.
+      Calls GSS_wrap( H_C || nonce_C ).
+      SSH_MSG_KEXGSS_COMPLETE ------------&gt;
+                                                    Computes hash H_C.
+                                                   Calls GSS_unwrap().
+                    Verifies that computed H_C matches received value.
+            </artwork>
+          </figure>
+        </t>
+
+    <t>This is implemented with the following messages:</t>
+        <figure>
+          <preamble>The client sends:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_INIT
+    string    output_token (from GSS_Init_sec_context())
+          </artwork>
+        </figure>
+          <preamble>The server sends:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_CONTINUE
+    string    output_token (from GSS_Accept_sec_context())
+          </artwork>
+        </figure>
+        <t>Each time the client receives the message described above, it
+        makes another call to GSS_Init_sec_context().</t>
+        <figure>
+          <preamble>The client sends:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_CONTINUE
+    string    output_token (from GSS_Init_sec_context())
+          </artwork>
+        </figure>
+        <figure>
+          <preamble>The final server message is either:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_COMPLETE
+    string    enc_nonce (GSS_wrap() of H_S and nonce_S)
+    boolean   TRUE
+    string    output_token (from GSS_Accept_sec_context())
+          </artwork>
+        </figure>
+        <figure>
+          <preamble>Or the following if no output_token is available:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_COMPLETE
+    string    enc_nonce (GSS_wrap() of H_S and nonce_S)
+    boolean   FALSE
+          </artwork>
+        </figure>
+        <figure>
+          <preamble>As the final message the client sends either:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_COMPLETE
+    string    enc_nonce (GSS_wrap() of H_C and nonce_C)
+    boolean   TRUE
+    string    output_token (from GSS_Accept_sec_context())
+          </artwork>
+        </figure>
+        <figure>
+          <preamble>Or the following if no output_token is available:</preamble>
+          <artwork>
+    byte      SSH_MSG_KEXGSS_COMPLETE
+    string    enc_nonce (GSS_wrap() of H_C and nonce_C)
+    boolean   FALSE
+          </artwork>
+        </figure>
+        <figure>
+          <preamble>The hashes H_S and H_C are computed as the HASH hash of the
+          concatenation of the following:</preamble>
+          <artwork>
+    string    V_C, the client's version string (CR, NL excluded)
+    string    V_S, server's version string (CR, NL excluded)
+    string    I_C, payload of the client's SSH_MSG_KEXINIT
+    string    I_S, payload of the server's SSH_MSG_KEXINIT
+    string    KC_S, payload of the server's SSH_MSG_KEXGSS_CONTINUE
+    string    KC_C, payload of the client's SSH_MSG_KEXGSS_CONTINUE
+    string    KC_S, payload of the server's second SSH_MSG_KEXGSS_CONTINUE
+    string    KC_C, payload of the client's second SSH_MSG_KEXGSS_CONTINUE
+    ...
+    string    KC, payload of the server's SSH_MSG_KEXGSS_COMPLETE
+          </artwork>
+        </figure>
+
+      <t>Those values are called exchange hashes, and they are used to
+        authenticate the key exchange. The exchange hashes SHOULD be kept
+        secret. If no SSH_MSG_KEXGSS_CONTINUE messages have been sent by the
+        server or received by the client, then an empty string is used in
+        place of KC_S and KC_C when computing the exchange hash.
+        When multiple SSH_MSG_KEXGSS_CONTINUE messages have been sent
+        by either side, then they should all be included in the exchange
+        hash, in order they have been processed by both sides of the connection.
+        For the H_S hash, the KC is an empty string.
+      </t>
+
+      <t>Once a party has both the server nonce (nonce_S) and the client
+          nonce (nonce_C) it concatenates them, in this order, to compute the
+          used shared secret K:</t>
+      <t>K = nonce_S || nonce_C</t>
+
+       <t>If the client receives a SSH_MSG_KEXGSS_CONTINUE message after
+        a call to GSS_Init_sec_context() has returned a major_status code
+        of GSS_S_COMPLETE, a protocol error has occurred and the key
+        exchange MUST fail.</t>
+
+       <t>If the client receives a SSH_MSG_KEXGSS_COMPLETE message and a
+        call to GSS_Init_sec_context() does not result in a major_status
+        code of GSS_S_COMPLETE, a protocol error has occurred and the key
+        exchange MUST fail.</t>
+
+      </section>
     </section>
 
     <section title="IANA Considerations">
@@ -161,7 +356,22 @@
       </section>
       <section title="User authentication">
         <t>TODO:  explain that user auth can't use asymmetric crypto, thus
-        only gssapi-keyex, password or keyboard-interactive should be used</t>
+            only gssapi-keyex, password or keyboard-interactive should be used</t>
+      </section>
+      <section title="Used GSSAPI Mechanisms">
+        <t>The security of the key exchange depends on the security of the
+            used GSSAPI mechanism. The described key exchange will be quantum
+            resistant only in case the used GSSAPI mechanism is quantum
+            resistant.
+        </t>
+        <t>For example, the Kerberos 5 mechanism is quantum resistant only when
+            it's used together with algorithms and key sizes that are quantum
+            resistant. Quantum safe algorithm SHOULD be used throught the
+            kerberos infrastructure, both for authentication and encryption.
+            Currently aes256-cts-hmac-sha384-192 mechanism defined
+            in <xref target="RFC8009"/> for encryption is an example
+            of such an algorithm.</t>
+      </section>
       <section title="GSSAPI Delegation">
         <t>Some GSSAPI mechanisms can act on a request to delegate credentials
         to the target host when the deleg_req_flag is set. In this case, extra
