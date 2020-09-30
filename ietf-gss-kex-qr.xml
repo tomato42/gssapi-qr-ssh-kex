@@ -145,14 +145,14 @@
             Section 3 being the most relevant. All security considerations
             described in <xref target="RFC7546"/> apply here too.
         </t>
-        <t>The parties generate in the key exchange generate nonces.
-            The generated nonces MUST be at lest 256 bits long and come from a
+        <t>The parties generate nonces in the key exchange.
+            The generated nonces MUST be at least 256 bits long and come from a
             quantum safe CSPRNG. The nonces MUST NOT be reused in other key
             exchanges.
         </t>
         <t>The client initiates negotiation by calling GSS_Init_sec_context()
             and the server responds to it by calling GSS_Accept_sec_context().
-            For the negotiation client MUST set the mutual_req_flag,
+            For the negotiation, client MUST set the mutual_req_flag,
             conf_req_flag, and integ_req_flag flag to "true". In addition,
             deleg_req_flag MAY be set to "true" to request access delegation,
             if requested by the user. Since the key exchange process
