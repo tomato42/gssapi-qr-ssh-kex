@@ -191,6 +191,7 @@
          <t>Peers MUST verify if the length of the selected nonce is not
              shorter than 32 octets. If the received nonce is shorter, the
              key exchange MUST fail.
+         </t>
 
         <t>The following is an overview of the key exchange process:
           <figure>
@@ -219,8 +220,8 @@
       Generates ephemeral nonce.
       Calls GSS_wrap( H_C || nonce_C ).
       SSH_MSG_KEXGSS_COMPLETE ------------&gt;
-                                                   Calls GSS_unwrap().
                                                     Computes hash H_C.
+                                                   Calls GSS_unwrap().
                     Verifies that computed H_C matches received value.
             </artwork>
           </figure>
@@ -300,7 +301,7 @@
           </artwork>
         </figure>
 
-      <t>Those values are called exchange hashs, and they are used to
+      <t>Those values are called exchange hashes, and they are used to
         authenticate the key exchange. The exchange hashes SHOULD be kept
         secret. If no SSH_MSG_KEXGSS_CONTINUE messages have been sent by the
         server or received by the client, then an empty string is used in
