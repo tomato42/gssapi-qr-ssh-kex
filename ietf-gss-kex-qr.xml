@@ -355,8 +355,13 @@
         </t>
       </section>
       <section title="User authentication">
-        <t>TODO:  explain that user auth can't use asymmetric crypto, thus
-            only gssapi-keyex, password or keyboard-interactive should be used</t>
+        <t>For the connection to remain resistant against quantum computers,
+            the user authentication needs to also use quantum resistant
+            algorithms. In particular, it's RECOMMENDED that connections
+            use gssapi-keyex for client authentication. The publickey
+            mechanism MUST NOT be used unless the asymmetric keys used for it
+            use post-quantum algorithms. DSA, ECDSA, and RSA keys MUST NOT
+            be used.</t>
       </section>
       <section title="Used GSSAPI Mechanisms">
         <t>The security of the key exchange depends on the security of the
