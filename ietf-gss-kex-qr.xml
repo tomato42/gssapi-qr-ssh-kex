@@ -22,7 +22,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-kario-gss-kex-qr-01"
+<rfc category="std" docName="draft-kario-gss-qr-kex-00"
      ipr="trust200902" updates="4462">
   <front>
     <title abbrev="GSS Keyex QR">Quantum-Resistant GSS-API Key Exchange for SSH</title>
