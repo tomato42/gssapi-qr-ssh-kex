@@ -235,6 +235,7 @@
     string    output_token (from GSS_Init_sec_context())
           </artwork>
         </figure>
+        <figure>
           <preamble>The server sends:</preamble>
           <artwork>
     byte      SSH_MSG_KEXGSS_CONTINUE
