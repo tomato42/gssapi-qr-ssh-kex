@@ -7,7 +7,9 @@
 <!ENTITY RFC6194 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6194.xml">
 <!ENTITY RFC6234 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6234.xml">
 <!ENTITY RFC7546 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7546.xml">
+<!ENTITY RFC8009 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8009.xml">
 <!ENTITY RFC8174 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8174.xml">
+<!ENTITY RFC8732 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8732.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
 
@@ -84,7 +86,7 @@
           not use FFDH or ECDH to agree on a shared secret to derive later
           encryption keys but rather uses GSS-API as a secure communication
           channel to exchange secrets that are then used to derive
-          encryption keys</t>.
+          encryption keys.</t>
       <t>To provide resistance against quantum computer attacks the connection
           needs to also carefully select encryption ciphers, and host
           authentication methods.</t>
@@ -406,6 +408,8 @@
 
       &RFC7546;
 
+      &RFC8732;
+
       <!--Key words for use in RFCs to Indicate Requirement Levels-->
 
       &RFC2119;
@@ -421,6 +425,10 @@
       <!--SHA-2-->
 
       &RFC6234;
+
+      <!--Krb5 with SHA-2-->
+
+      &RFC8009;
 
       <reference
           anchor="ISO-IEC-8825-1"
